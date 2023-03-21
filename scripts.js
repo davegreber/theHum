@@ -37,3 +37,51 @@ const thumbnailMeshes = videoTextures.map((texture, index) => {
     scene.add(mesh);
     return mesh;
 });
+
+function onMouseClick(event) {
+    event.preventDefault();
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+
+    const intersects = raycaster.intersectObjects(thumbnailMeshes);
+
+    if (intersects.length > 0) {
+        const selectedThumbnail = intersects[0].object;
+
+        if (selectedThumbnail.scale.x === 1) {
+            selectedThumbnail.scale.set(4, 4, 4);
+            selectedThumbnail.material.map.play();
+        } else {
+            selectedThumbnail.scale.set(1, 1, 1);
+            selectedThumbnail.material.map.pause();
+        }
+    }
+}
+
+window.addEventListener('click', onMouseClick);
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    const elapsedTime = clock.getElapsedTime();
+
+    thumbnailMeshes.forEach((mesh, index) => {
+        mesh.rotation.y = elapsedTime * 0.2 + index * Math.PI / videoURLs.length;
+    });
+
+    renderer.render(scene, camera);
+}
+
+animate();
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+window.addEventListener('resize', onWindowResize);
